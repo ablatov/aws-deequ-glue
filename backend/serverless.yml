@@ -1,0 +1,193 @@
+service: dq-backend-dynamodb
+
+frameworkVersion: ">=2.22.0"
+
+package:
+  exclude:
+    - venv/**
+    - py37/**
+    - jenkins/**
+    - node_modules/**
+    - ITest/**
+    - tmp/**
+    - .git/**
+    - .serverless/**
+
+custom:
+  wsgi:
+    app: constraints_api.app
+    packRequirements: false
+  pythonRequirements:
+    dockerizePip: non-linux
+  userPoolName: dq-user-pool-${self:provider.stage}
+  userPoolClientName: dq-user-pool-client-${self:provider.stage}
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  # profile: ${opt:profile, 'default'} uncomment if local deployment
+  memorySize: 3000
+  timeout: 30
+  environment:
+    SUGGESTION_DYNAMODB_TABLE: DataQualitySuggestion-${self:provider.stage}
+    ANALYZER_DYNAMODB_TABLE: DataQualityAnalyzer-${self:provider.stage}
+
+functions:
+  constraintsApi:
+    role: arn:aws:iam::#{AWS::AccountId}:role/your-role
+    handler: wsgi_handler.handler
+    events:
+      - http:
+          path: /suggestions
+          method: GET
+          cors: true
+      - https:
+          path: /suggestions
+          method: GET
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /suggestions
+          method: POST
+          cors: true
+      - https:
+          path: /suggestions
+          method: POST
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /suggestions
+          method: PUT
+          cors: true
+      - https:
+          path: /suggestions
+          method: PUT
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+            cors: true
+
+      - http:
+          path: /suggestions/{suggestion_id}
+          method: DELETE
+          cors: true
+      - https:
+          path: /suggestions/{suggestion_id}
+          method: DELETE
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /analyzers
+          method: GET
+          cors: true
+      - https:
+          path: /analyzers
+          method: GET
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /analyzers
+          method: POST
+          cors: true
+      - https:
+          path: /analyzers
+          method: POST
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /analyzers
+          method: PUT
+          cors: true
+      - https:
+          path: /analyzers
+          method: PUT
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+      - http:
+          path: /analyzers/{analyzer_id}
+          method: DELETE
+          cors: true
+      - https:
+          path: /analyzers/{analyzer_id}
+          method: DELETE
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors: true
+
+resources:
+  Resources:
+    CognitoUserPool:
+      Type: "AWS::Cognito::UserPool"
+      Properties:
+        MfaConfiguration: OFF
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        AutoVerifiedAttributes:
+          - email
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        UserPoolName: ${self:custom.userPoolName}
+        UsernameAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: False
+            RequireNumbers: True
+            RequireSymbols: False
+            RequireUppercase: True
+    CognitoUserPoolClient:
+      Type: "AWS::Cognito::UserPoolClient"
+      Properties:
+        ClientName: ${self:custom.userPoolClientName}
+        GenerateSecret: False
+        UserPoolId:
+          Ref: CognitoUserPool
+    ApiGatewayAuthorizer:
+      DependsOn:
+        - ApiGatewayRestApi
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: cognito-authorizer
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - Fn::GetAtt: [CognitoUserPool, Arn]
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-pseudo-parameters

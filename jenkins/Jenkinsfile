@@ -1,0 +1,95 @@
+settings = [
+    aws_region: "",
+    aws_credentials_id: "aws_credentials_id",
+    aws_admin_role_arn: "arn:aws:iam::account_id:role/role-name",
+    aws_admin_credentials: "",
+    aws_session_duration: "3600",
+    iamPermissionsBoundaryARN: "arn:aws:iam::account_id:policy/user-name",
+]
+
+properties([
+       parameters([
+               gitParameter(
+                    branch: '',
+                    branchFilter: '.*',
+                    defaultValue: '',
+                    description: 'Repository branches',
+                    name: 'BRANCH',
+                    quickFilterEnabled: true,
+                    sortMode: 'NONE',
+                    tagFilter: '*',
+                    type: "PT_BRANCH",
+                    useRepository: "https://github.com/ablatov/amazon-deequ-glue.git"),
+                string(
+                    name: 'environment',
+                    defaultValue: 'dev',
+                    description: '''Environment name for created AWS resources''',
+                    trim: true
+                ),
+                string(
+                    name: 'cloudFormationStackName',
+                    defaultValue: 'serverless-data-quality-deequ-glue',
+                    description: 'AWS CloudFormation stack name',
+                ),
+                string(
+                       name: "awsRegion",
+                       defaultValue: 'us-east-1',
+                       description: 'AWS region to deploy all resources'
+                )
+        ])
+])
+
+pipeline {
+    agent {
+      label 'docker'
+   }
+
+   stages {
+      stage("Prepare Docker agent"){
+         agent {
+            docker {
+               image 'my.project.com/dq-glue-deequ/1.0.0:current'
+               args '-u 0:0 -v $WORKSPACE:/opt/app --shm-size "1568M"'
+               reuseNode true
+            }
+         }
+
+       stages {
+          stage('Prepare parameters'){
+                steps{
+                    script{
+                       settings.aws_region = "${awsRegion}"
+                       settings.aws_admin_credentials = readJSON file: '', text: (sts_assume_role(settings.aws_credentials_id, settings.aws_region, settings.aws_admin_role_arn, settings.aws_session_duration))
+                    }
+                }
+            }
+
+          stage('Deploy DQF to AWS'){
+               steps {
+                   withEnv([
+                        "AWS_ACCESS_KEY_ID=${settings.aws_admin_credentials[0]}",
+                        "AWS_SECRET_ACCESS_KEY=${settings.aws_admin_credentials[1]}",
+                        "AWS_SESSION_TOKEN=${settings.aws_admin_credentials[2]}",
+                        "AWS_DEFAULT_REGION=${settings.aws_region}",
+                    ]) {
+                        script {
+                            sh """
+                                echo 'Starting deployment'
+                                ./deploy.sh -r $awsRegion -n $cloudFormationStackName -e $environment
+                            """
+                        }
+                   }
+               }
+          }
+        }
+      }
+   }
+}
+
+def sts_assume_role(credentialsID, region, roleARN, sessionDuration){
+    def aws_sts_credentials
+    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: "${credentialsID}", secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        aws_sts_credentials = sh (returnStdout: true, script: "aws sts assume- role --role-arn ${roleARN} --role-session-name role_nameF-${BUILD_NUMBER} --output json --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' --duration-seconds ${sessionDuration}").trim()
+    }
+    return aws_sts_credentials
+}
