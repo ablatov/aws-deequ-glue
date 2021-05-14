@@ -5,10 +5,7 @@ Description: Data Quality with Deequ on AWS Glue
 Parameters:
   ResourcePrefix:
     Type: String
-    Default: 'my-prefix'
-  IAMPermissionsBoundaryARN:
-    Type: String
-    Default: 'arn:aws:iam::account_id:policy/policy_name'
+    Default: 'aws-deequ'
   pArtifactsBucket:
     Description: The name of the artifacts bucket
     Type: String
@@ -74,7 +71,7 @@ Resources:
 #            Condition:
 #              IpAddress:
 #                'aws:SourceIp':
-#                  - 192.168.0.0/14  # uncomment and update it if VPN needed for the UI usage.
+#                  - 192.168.0.0/14               # uncomment and update it if VPN needed for the UI usage.
 #                  - 192.169.0.0/16
 
 
@@ -115,7 +112,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${ResourcePrefix}-glue-jobs
-      PermissionsBoundary: !Ref IAMPermissionsBoundaryARN
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -135,7 +131,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${ResourcePrefix}-glue-crawler
-      PermissionsBoundary: !Ref IAMPermissionsBoundaryARN
       ManagedPolicyArns:
         - !Ref rCommonIAMPolicy
       AssumeRolePolicyDocument:
@@ -160,7 +155,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${ResourcePrefix}-dq-lambda
-      PermissionsBoundary: !Ref IAMPermissionsBoundaryARN
       ManagedPolicyArns:
         - !Ref rCommonIAMPolicy
       AssumeRolePolicyDocument:
@@ -174,7 +168,6 @@ Resources:
   rStatesExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      PermissionsBoundary: !Ref IAMPermissionsBoundaryARN
       RoleName: !Sub ${ResourcePrefix}-states
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -205,7 +198,6 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${ResourcePrefix}-event-trigger
-      PermissionsBoundary: !Ref IAMPermissionsBoundaryARN
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:

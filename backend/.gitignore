@@ -151,4 +151,3 @@ pkg_resources
 .vscode
 .requirements
 _distutils_hack
-/node_modules/
