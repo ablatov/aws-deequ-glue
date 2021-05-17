@@ -12,7 +12,7 @@ install-third-party-tools:
 endif
 
 install-python-dependencies:
-	python -m venv py37
+	python3.7 -m venv py37
 	. py37/bin/activate; \
 	pip install --upgrade pip; \
 	pip install --no-deps -r requirements.txt; \

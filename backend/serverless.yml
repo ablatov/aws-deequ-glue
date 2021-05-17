@@ -27,7 +27,7 @@ provider:
   runtime: python3.7
   region: ${opt:region, 'us-east-1'}
   stage: ${opt:stage, 'dev'}
-  # profile: ${opt:profile, 'default'} uncomment if local deployment
+  profile: ${opt:profile, 'default'} #uncomment if local deployment
   memorySize: 3000
   timeout: 30
   environment:
@@ -36,7 +36,8 @@ provider:
 
 functions:
   constraintsApi:
-    role: arn:aws:iam::#{AWS::AccountId}:role/aws-deequ-dq-lambda
+    role: arn:aws:iam::#{AWS::AccountId}:role/aws-deequ-dq-lambda   #serverless-pseudo-parameters hint
+
     handler: wsgi_handler.handler
     events:
       - http:

@@ -6,10 +6,24 @@ Original documentation can be found here - https://aws.amazon.com/blogs/big-data
 ## Installation & deployment
 ### From local laptop
 1. Setup AWS CLI locally (temporary AWS credentials for the account can be used)
-2. Install Python >= 3.7
+2. Install Python >= 3.7 (check this https://linuxize.com/post/how-to-install-python-3-7-on-ubuntu-18-04/)
 3. Install Node.js >= 14.7.0
-4. To deploy simply run:
 ```
+curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+4. Install needed dependencies 
+```
+cd backend
+make install
+mkdir ~/.npm-global
+PATH=~/.npm-global/bin:$PATH
+NPM_CONFIG_PREFIX=~/.npm-global
+sudo npm install -g serverless serverless-pseudo-parameters serverless-python-requirements serverless-wsgi --unsafe
+```
+5. To deploy simply run:
+```
+cd ../
 ./deploy.sh -r $YOUR_REGION_HERE -p $YOUR_AMAZON_PROFILE -n $YOUR_STACK_NAME -e $YOUR_ENV_NAME
 ```
 
