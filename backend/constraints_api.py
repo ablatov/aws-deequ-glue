@@ -30,8 +30,7 @@ def handle_table_name(endpoint):
 def apply_cors(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Access-Control-Allow-Headers, ' \
-                                                       'Authorization, X-Requested-With'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With'
     return response
 
 
