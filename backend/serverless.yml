@@ -37,7 +37,6 @@ provider:
 functions:
   constraintsApi:
     role: arn:aws:iam::#{AWS::AccountId}:role/aws-deequ-dq-lambda   #serverless-pseudo-parameters hint
-
     handler: wsgi_handler.handler
     events:
       - http:
