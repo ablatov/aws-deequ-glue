@@ -26,6 +26,14 @@ sudo npm install -g serverless serverless-pseudo-parameters serverless-python-re
 cd ../
 ./deploy.sh -r $YOUR_REGION_HERE -p $YOUR_AMAZON_PROFILE -n $YOUR_STACK_NAME -e $YOUR_ENV_NAME
 ```
+All these parameters are optional, default values you can find in [deploy.sh](deploy.sh) script.
+$YOUR_REGION_HERE - AWS region where you want to deploy 
+$YOUR_AMAZON_PROFILE - profile you select to use (set during aws configure)
+$YOUR_STACK_NAME - how your Stack will be displayed in AWS Cloudformation
+$YOUR_ENV_NAME - environment to deploy resources to (dev\uat\prod)
+
+6. To test the deployment in E2E manner, please use manual from here (Text and links under architecture picture): 
+https://aws.amazon.com/blogs/big-data/building-a-serverless-data-quality-and-analysis-framework-with-deequ-and-aws-glue/
 
 ### From Jenkins server
 1. Build and push docker container with [pushDockerfile.groovy](jenkins/pushDockerfile.groovy)

@@ -152,12 +152,12 @@ aws cognito-idp update-user-pool-client --user-pool-id $USER_POOL_ID --client-id
 
 RANDOM_UUID=$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z' | fold -w 5 | head -n 1)
 DEMO_USERNAME="$RANDOM_UUID@domain.com"
-DEMO_PASS="123$RANDOM_UUID"
+DEMO_PASS="123aA$RANDOM_UUID"
 aws cognito-idp admin-create-user --user-pool-id $USER_POOL_ID --username $DEMO_USERNAME --temporary-password $DEMO_PASS
 
 echo "## CURRENT STAGE ##: Rebuild Web UI and redeploy to S3 bucket..."
 echo "Building with variables: REACT_APP_BASE_URL=$API_URL REACT_APP_USER_POOL_ID=$USER_POOL_ID REACT_APP_APP_CLIENT_ID=$APP_CLIENT_ID REACT_APP_REGION=$REGION"
-cd ../web_ui && npm install
+cd ../web_ui && npm install -f
 REACT_APP_BASE_URL=$API_URL REACT_APP_USER_POOL_ID=$USER_POOL_ID REACT_APP_APP_CLIENT_ID=$APP_CLIENT_ID REACT_APP_REGION=$REGION npm run build
 aws s3 cp ./build s3://$WEB_UI_S3_BUCKET/ $AWS_CLI_PROFILE --recursive
 
