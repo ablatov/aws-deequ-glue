@@ -34,7 +34,8 @@ $YOUR_ENV_NAME - environment to deploy resources to (dev\uat\prod)
 
 6. To test the deployment in E2E manner, please use manual from here (Text and links under architecture picture): 
 https://aws.amazon.com/blogs/big-data/building-a-serverless-data-quality-and-analysis-framework-with-deequ-and-aws-glue/
-!!! TESTING OF THE SOLUTION WILL COST YOUR MONEY ( about 10 US cents :)  ) !!!
+
+**!!! TESTING OF THE SOLUTION WILL COST YOUR MONEY ( about 10 US cents :)  ) !!!**
 
 ### From Jenkins server
 1. Build and push docker container with [pushDockerfile.groovy](jenkins/pushDockerfile.groovy)
